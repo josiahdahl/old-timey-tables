@@ -3,9 +3,12 @@ import { CellValue } from "../hooks/use-times-table";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
 export interface InputCellProps {
+  xIdx: number;
+  yIdx: number;
   cellValue: CellValue;
   idSeed: string;
   cellMode: "input" | "validated";
+  onFocus: () => void;
 }
 
 const numberOnlyRegex = /[^\d]/g;
@@ -54,6 +57,7 @@ export function InputCell(props: InputCellProps) {
         inputMode="numeric"
         value={value}
         onChange={handleChange}
+        onFocus={() => props.onFocus()}
         ref={inputRef}
       />
     </CellContent>
