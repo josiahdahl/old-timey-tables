@@ -16,6 +16,7 @@ const numberOnlyRegex = /[^\d]/g;
 export function InputCell(props: InputCellProps) {
   const inputRef = useRef(null);
   const [value, setValue] = useState<string>("");
+
   function handleChange(ev: ChangeEvent<HTMLInputElement>) {
     const { value: valueAsString } = ev.currentTarget;
     const validatedValue = valueAsString.replace(numberOnlyRegex, "");
@@ -24,6 +25,7 @@ export function InputCell(props: InputCellProps) {
       props.cellValue.answer = Number(validatedValue);
     }
   }
+
   useEffect(() => {
     if (props.cellMode === "input") {
       setValue("");
@@ -31,13 +33,15 @@ export function InputCell(props: InputCellProps) {
   }, [props.cellMode]);
   const { x, y, answer, isCorrect } = props.cellValue;
   if (props.cellMode === "validated") {
+    const bg =
+      typeof answer === "undefined"
+        ? "bg-gray-300"
+        : isCorrect
+        ? "bg-green-500"
+        : "bg-red-500";
     return (
       <CellContent>
-        <div
-          className={`w-full h-full flex justify-center items-center ${
-            isCorrect ? "bg-green-500" : "bg-red-500"
-          }`}
-        >
+        <div className={`w-full h-full flex justify-center items-center ${bg}`}>
           {answer}
         </div>
       </CellContent>
