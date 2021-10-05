@@ -1,38 +1,48 @@
 import { CellContent } from "./CellContent";
-import { CellValue } from "../hooks/use-times-table";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { CellValue, TimesTableState } from "../hooks/use-times-table";
+import { ChangeEvent, useEffect, useRef } from "react";
+import { useCell } from "../contexts/times-table.context";
 
 export interface InputCellProps {
   xIdx: number;
   yIdx: number;
-  cellValue: CellValue;
-  idSeed: string;
-  cellMode: "input" | "validated";
-  onFocus: () => void;
 }
 
 const numberOnlyRegex = /[^\d]/g;
 
 export function InputCell(props: InputCellProps) {
-  const inputRef = useRef(null);
-  const [value, setValue] = useState<string>("");
+  const { cell, isFocused, idSeed, state, focus, setValue } = useCell(
+    props.xIdx,
+    props.yIdx
+  );
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // useEffect(() => {
+  //   if (state === TimesTableState.ANSWERING) {
+  //     setValue(undefined);
+  //   }
+  // }, [state]);
+
+  useEffect(() => {
+    if (isFocused && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isFocused]);
 
   function handleChange(ev: ChangeEvent<HTMLInputElement>) {
     const { value: valueAsString } = ev.currentTarget;
     const validatedValue = valueAsString.replace(numberOnlyRegex, "");
-    setValue(validatedValue);
     if (validatedValue !== "") {
-      props.cellValue.answer = Number(validatedValue);
+      setValue(Number(validatedValue));
     }
   }
 
-  useEffect(() => {
-    if (props.cellMode === "input") {
-      setValue("");
-    }
-  }, [props.cellMode]);
-  const { x, y, answer, isCorrect } = props.cellValue;
-  if (props.cellMode === "validated") {
+  if (!cell) {
+    return null;
+  }
+
+  const { x, y, answer, isCorrect } = cell;
+  if (state === TimesTableState.VALIDATED) {
     const bg =
       typeof answer === "undefined"
         ? "bg-gray-300"
@@ -47,7 +57,7 @@ export function InputCell(props: InputCellProps) {
       </CellContent>
     );
   }
-  const id = `${x}-${y}-${props.idSeed}`;
+  const id = `${x}-${y}-${idSeed}`;
   return (
     <CellContent>
       <label htmlFor={id} className="sr-only">
@@ -59,9 +69,9 @@ export function InputCell(props: InputCellProps) {
         className={`w-full h-full text-center`}
         type="text"
         inputMode="numeric"
-        value={value}
+        value={typeof answer === 'undefined' ? '' : answer}
         onChange={handleChange}
-        onFocus={() => props.onFocus()}
+        onFocus={focus}
         ref={inputRef}
       />
     </CellContent>
