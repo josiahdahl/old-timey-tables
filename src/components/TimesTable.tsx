@@ -28,7 +28,7 @@ export function TimesTable({ width, height }: TableProps) {
   const [modalOpen, setModalOpen] = useState(false);
   const tableRef = useRef(null);
   useOnClickOutside(tableRef, () => {
-    focusedCell(-1);
+    focusCell(-1);
   });
   const arrowKeyHandler = useCallback<ArrowKeyHandler>(
     (direction) => {
