@@ -30,6 +30,41 @@ export function TimesTable({ width, height }: TableProps) {
   useOnClickOutside(tableRef, () => {
     focusCell(-1);
   });
+  const beforeUnloadRef = useRef<undefined | ((e: BeforeUnloadEvent) => void)>(
+    undefined
+  );
+  const completedQuestions = cells.filter(
+    (v) => typeof v.answer !== "undefined"
+  );
+  const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
+  const selectedX = focusedCell % width;
+  const selectedY = Math.floor(focusedCell / width);
+  useEffect(() => {
+    if (beforeUnloadRef.current) {
+      window.removeEventListener("beforeunload", beforeUnloadRef.current);
+    }
+    beforeUnloadRef.current = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      if (
+        state === TimesTableState.ANSWERING &&
+        completedQuestions.length > 0
+      ) {
+        const leavePage = confirm("Are you sure you want to leave?");
+        if (!leavePage) {
+          e.returnValue = "";
+        } else {
+          delete e["returnValue"];
+        }
+      }
+      delete e["returnValue"];
+    };
+    window.addEventListener("beforeunload", beforeUnloadRef.current);
+    return () => {
+      if (beforeUnloadRef.current) {
+        window.removeEventListener("beforeunload", beforeUnloadRef.current);
+      }
+    };
+  }, [state]);
   const arrowKeyHandler = useCallback<ArrowKeyHandler>(
     (direction) => {
       switch (direction) {
@@ -82,9 +117,18 @@ export function TimesTable({ width, height }: TableProps) {
 
   function validateAnswers(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
+    if (completedQuestions.length !== rows.length * cols.length) {
+      const shouldValidate = confirm(
+        "You have unanswered questions. Really check answers?"
+      );
+      if (!shouldValidate) {
+        return;
+      }
+    }
     validate();
     showModal();
   }
+
   function handleReset() {
     reset(width, height);
   }
@@ -94,13 +138,6 @@ export function TimesTable({ width, height }: TableProps) {
       handleReset();
     }
   }, [state]);
-
-  const completedQuestions = cells.filter(
-    (v) => typeof v.answer !== "undefined"
-  );
-  const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
-  const selectedX = focusedCell % width;
-  const selectedY = Math.floor(focusedCell / width);
 
   return rows.length === 0 ? null : (
     <main className="flex flex-col items-center justify-center min-h-screen">

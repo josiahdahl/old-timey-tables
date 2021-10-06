@@ -34,6 +34,8 @@ export function InputCell(props: InputCellProps) {
     const validatedValue = valueAsString.replace(numberOnlyRegex, "");
     if (validatedValue !== "") {
       setValue(Number(validatedValue));
+    } else {
+      setValue(undefined);
     }
   }
 
