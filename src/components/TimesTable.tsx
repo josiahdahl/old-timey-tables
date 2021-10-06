@@ -1,10 +1,12 @@
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { CellContent } from "./CellContent";
 import { InputCell } from "./InputCell";
-import { TimesTableState, useTimesTable } from "../hooks/use-times-table";
+import { TimesTableState } from "../hooks/use-times-table";
 import { Dialog } from "@reach/dialog";
 import "@reach/dialog/styles.css";
 import { useOnClickOutside } from "../hooks/use-click-outside";
+import { useTimesTable } from "../contexts/times-table.context";
+import { ArrowKeyHandler, useArrowKeys } from "../hooks/use-arrow-keys";
 
 export interface TableProps {
   width: number;
@@ -12,17 +14,68 @@ export interface TableProps {
 }
 
 export function TimesTable({ width, height }: TableProps) {
-  const { rows, cols, values, reset, setAnswer, validate, idSeed, state } =
-    useTimesTable(width, height);
+  const {
+    rows,
+    cols,
+    cells,
+    reset,
+    validate,
+    idSeed,
+    state,
+    focusCell,
+    focusedCell,
+  } = useTimesTable();
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedColRow, setSelectedColRow] = useState<{
-    x?: number;
-    y?: number;
-  }>({});
   const tableRef = useRef(null);
   useOnClickOutside(tableRef, () => {
-    setSelectedColRow({});
+    focusedCell(-1);
   });
+  const arrowKeyHandler = useCallback<ArrowKeyHandler>(
+    (direction) => {
+      switch (direction) {
+        case "ArrowUp": {
+          if (focusedCell >= width) {
+            // move up a row
+            focusCell(focusedCell - width);
+          } else {
+            // wrap to the bottom
+            focusCell(width * height - 1 - (width - 1 - focusedCell));
+          }
+          break;
+        }
+        case "ArrowDown": {
+          if (focusedCell <= width * (height - 1) - 1) {
+            // move down
+            focusCell(focusedCell + width);
+          } else {
+            // wrap to the top
+            focusCell(focusedCell % width);
+          }
+          break;
+        }
+        case "ArrowLeft": {
+          if (focusedCell % width !== 0) {
+            focusCell(focusedCell - 1);
+          } else {
+            // wrap to right side
+            focusCell(focusedCell + width - 1);
+          }
+          break;
+        }
+        case "ArrowRight": {
+          if (focusedCell % width !== width - 1) {
+            focusCell(focusedCell + 1);
+          } else {
+            // wrap to left side
+            focusCell(focusedCell - width + 1);
+          }
+          break;
+        }
+      }
+    },
+    [width, height, focusedCell]
+  );
+  useArrowKeys(arrowKeyHandler);
 
   const showModal = () => setModalOpen(true);
   const hideModal = () => setModalOpen(false);
@@ -32,14 +85,22 @@ export function TimesTable({ width, height }: TableProps) {
     validate();
     showModal();
   }
-  function handleFocus(x: number, y: number) {
-    setSelectedColRow({ x, y });
+  function handleReset() {
+    reset(width, height);
   }
 
-  const completedQuestions = values.current.filter(
+  useEffect(() => {
+    if (state === TimesTableState.ANSWERING) {
+      handleReset();
+    }
+  }, [state]);
+
+  const completedQuestions = cells.filter(
     (v) => typeof v.answer !== "undefined"
   );
   const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
+  const selectedX = focusedCell % width;
+  const selectedY = Math.floor(focusedCell / width);
 
   return rows.length === 0 ? null : (
     <main className="flex flex-col items-center justify-center min-h-screen">
@@ -54,7 +115,7 @@ export function TimesTable({ width, height }: TableProps) {
               <th />
               {cols.map((col, colIdx) => (
                 <th className="border" key={col}>
-                  <CellContent isHighlighted={selectedColRow.x === colIdx}>
+                  <CellContent isHighlighted={selectedX === colIdx}>
                     {col}
                   </CellContent>
                 </th>
@@ -65,27 +126,14 @@ export function TimesTable({ width, height }: TableProps) {
             {rows.map((row, rowIdx) => (
               <tr key={row}>
                 <td className="border">
-                  <CellContent isHighlighted={selectedColRow.y === rowIdx}>
+                  <CellContent isHighlighted={selectedY === rowIdx}>
                     <strong>{row}</strong>
                   </CellContent>
                 </td>
                 {cols.map((col, colIdx) => {
                   return (
                     <td key={`${col}-${row}`} className="border">
-                      <InputCell
-                        cellValue={
-                          values.current[rowIdx * rows.length + colIdx]
-                        }
-                        idSeed={idSeed}
-                        cellMode={
-                          state === TimesTableState.VALIDATED
-                            ? "validated"
-                            : "input"
-                        }
-                        xIdx={colIdx}
-                        yIdx={rowIdx}
-                        onFocus={() => handleFocus(colIdx, rowIdx)}
-                      />
+                      <InputCell xIdx={colIdx} yIdx={rowIdx} />
                     </td>
                   );
                 })}
@@ -103,13 +151,17 @@ export function TimesTable({ width, height }: TableProps) {
           <button
             className="border-2 border-transparent bg-transparent text-blue-900 font-bold px-2 py-1"
             type="reset"
-            onClick={reset}
+            onClick={handleReset}
           >
             Reset
           </button>
         </div>
       </form>
-      <Dialog isOpen={modalOpen} onDismiss={hideModal}>
+      <Dialog
+        isOpen={modalOpen}
+        onDismiss={hideModal}
+        aria-label="Times Table Results"
+      >
         <div className="text-xl text-center">
           <p>
             Completed{" "}
