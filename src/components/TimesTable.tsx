@@ -7,6 +7,7 @@ import "@reach/dialog/styles.css";
 import { useOnClickOutside } from "../hooks/use-click-outside";
 import { useTimesTable } from "../contexts/times-table.context";
 import { ArrowKeyHandler, useArrowKeys } from "../hooks/use-arrow-keys";
+import { KeyboardControls } from "./KeyboardControls";
 
 export interface TableProps {
   width: number;
@@ -14,17 +15,8 @@ export interface TableProps {
 }
 
 export function TimesTable({ width, height }: TableProps) {
-  const {
-    rows,
-    cols,
-    cells,
-    reset,
-    validate,
-    idSeed,
-    state,
-    focusCell,
-    focusedCell,
-  } = useTimesTable();
+  const { rows, cols, cells, reset, validate, state, focusCell, focusedCell } =
+    useTimesTable();
   const [modalOpen, setModalOpen] = useState(false);
   const tableRef = useRef(null);
   useOnClickOutside(tableRef, () => {
@@ -65,52 +57,6 @@ export function TimesTable({ width, height }: TableProps) {
       }
     };
   }, [state]);
-  const arrowKeyHandler = useCallback<ArrowKeyHandler>(
-    (direction) => {
-      switch (direction) {
-        case "ArrowUp": {
-          if (focusedCell >= width) {
-            // move up a row
-            focusCell(focusedCell - width);
-          } else {
-            // wrap to the bottom
-            focusCell(width * height - 1 - (width - 1 - focusedCell));
-          }
-          break;
-        }
-        case "ArrowDown": {
-          if (focusedCell <= width * (height - 1) - 1) {
-            // move down
-            focusCell(focusedCell + width);
-          } else {
-            // wrap to the top
-            focusCell(focusedCell % width);
-          }
-          break;
-        }
-        case "ArrowLeft": {
-          if (focusedCell % width !== 0) {
-            focusCell(focusedCell - 1);
-          } else {
-            // wrap to right side
-            focusCell(focusedCell + width - 1);
-          }
-          break;
-        }
-        case "ArrowRight": {
-          if (focusedCell % width !== width - 1) {
-            focusCell(focusedCell + 1);
-          } else {
-            // wrap to left side
-            focusCell(focusedCell - width + 1);
-          }
-          break;
-        }
-      }
-    },
-    [width, height, focusedCell]
-  );
-  useArrowKeys(arrowKeyHandler);
 
   const showModal = () => setModalOpen(true);
   const hideModal = () => setModalOpen(false);
@@ -194,6 +140,7 @@ export function TimesTable({ width, height }: TableProps) {
           </button>
         </div>
       </form>
+      <KeyboardControls />
       <Dialog
         isOpen={modalOpen}
         onDismiss={hideModal}
