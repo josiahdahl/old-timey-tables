@@ -1,13 +1,9 @@
-import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { FormEvent, useEffect, useRef } from "react";
 import { CellContent } from "./CellContent";
 import { InputCell } from "./InputCell";
-import { TimesTableState } from "../hooks/use-times-table";
-import { Dialog } from "@reach/dialog";
 import "@reach/dialog/styles.css";
 import { useOnClickOutside } from "../hooks/use-click-outside";
-import { useTimesTable } from "../contexts/times-table.context";
-import { ArrowKeyHandler, useArrowKeys } from "../hooks/use-arrow-keys";
-import { KeyboardControls } from "./KeyboardControls";
+import { TimesTableState, useTimesTable } from "../contexts/times-table.context";
 
 export interface TableProps {
   width: number;
@@ -17,7 +13,6 @@ export interface TableProps {
 export function TimesTable({ width, height }: TableProps) {
   const { rows, cols, cells, reset, validate, state, focusCell, focusedCell } =
     useTimesTable();
-  const [modalOpen, setModalOpen] = useState(false);
   const tableRef = useRef(null);
   useOnClickOutside(tableRef, () => {
     focusCell(-1);
@@ -28,7 +23,6 @@ export function TimesTable({ width, height }: TableProps) {
   const completedQuestions = cells.filter(
     (v) => typeof v.answer !== "undefined"
   );
-  const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
   const selectedX = focusedCell % width;
   const selectedY = Math.floor(focusedCell / width);
   useEffect(() => {
@@ -58,9 +52,6 @@ export function TimesTable({ width, height }: TableProps) {
     };
   }, [state]);
 
-  const showModal = () => setModalOpen(true);
-  const hideModal = () => setModalOpen(false);
-
   function validateAnswers(ev: FormEvent<HTMLFormElement>) {
     ev.preventDefault();
     if (completedQuestions.length !== rows.length * cols.length) {
@@ -72,7 +63,6 @@ export function TimesTable({ width, height }: TableProps) {
       }
     }
     validate();
-    showModal();
   }
 
   function handleReset() {
@@ -140,33 +130,6 @@ export function TimesTable({ width, height }: TableProps) {
           </button>
         </div>
       </form>
-      <KeyboardControls />
-      <Dialog
-        isOpen={modalOpen}
-        onDismiss={hideModal}
-        aria-label="Times Table Results"
-      >
-        <div className="text-xl text-center">
-          <p>
-            Completed{" "}
-            <strong>
-              {completedQuestions.length} / {rows.length * cols.length}
-            </strong>
-          </p>
-          <p>
-            Accurate{" "}
-            <strong>
-              {correctQuestions.length} / {rows.length * cols.length}
-            </strong>
-          </p>
-          <button
-            className="bg-blue-900 text-white rounded border-blue-900 border-2 px-2 py-1 mt-4"
-            onClick={hideModal}
-          >
-            Close
-          </button>
-        </div>
-      </Dialog>
     </main>
   );
 }

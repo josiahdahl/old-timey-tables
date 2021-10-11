@@ -1,13 +1,4 @@
-import {
-  createContext,
-  FC,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
-import { CellValue, TimesTableState } from "../hooks/use-times-table";
+import { createContext, FC, useCallback, useContext, useState } from "react";
 
 export interface TimesTableContextValue {
   cells: CellValue[];
@@ -34,6 +25,18 @@ export interface UseCell {
 const TimesTableContext = createContext<TimesTableContextValue | undefined>(
   undefined
 );
+
+export interface CellValue {
+  x: number;
+  y: number;
+  answer?: number;
+  isCorrect?: boolean;
+}
+
+export enum TimesTableState {
+  ANSWERING,
+  VALIDATED,
+}
 
 export function useTimesTable(): TimesTableContextValue {
   const context = useContext(TimesTableContext);

@@ -1,7 +1,10 @@
 import { CellContent } from "./CellContent";
-import { CellValue, TimesTableState } from "../hooks/use-times-table";
 import { ChangeEvent, useEffect, useRef } from "react";
-import { useCell } from "../contexts/times-table.context";
+import {
+  useCell,
+  CellValue,
+  TimesTableState,
+} from "../contexts/times-table.context";
 
 export interface InputCellProps {
   xIdx: number;
@@ -71,7 +74,7 @@ export function InputCell(props: InputCellProps) {
         className={`w-full h-full text-center`}
         type="text"
         inputMode="numeric"
-        value={typeof answer === 'undefined' ? '' : answer}
+        value={typeof answer === "undefined" ? "" : answer}
         onChange={handleChange}
         onFocus={focus}
         ref={inputRef}
