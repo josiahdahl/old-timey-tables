@@ -62,7 +62,11 @@ export function TimesTable() {
   }
 
   function handleReset() {
-    if (completedQuestionsCount > 0 && completedQuestionsCount !== rows.length * cols.length) {
+    if (
+      state !== TimesTableState.VALIDATED &&
+      completedQuestionsCount > 0 &&
+      completedQuestionsCount !== rows.length * cols.length
+    ) {
       const shouldReset = confirm(
         "You have unanswered questions. Really reset?"
       );
