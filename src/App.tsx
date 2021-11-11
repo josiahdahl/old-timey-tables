@@ -16,6 +16,7 @@ export function App() {
         <TimesTable />
         <button
           aria-label="Open settings dialog"
+          className="mb-2"
           onClick={() => setShowSettings(true)}
         >
           Settings
