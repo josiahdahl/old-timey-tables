@@ -1,4 +1,5 @@
 import { createContext, FC, useCallback, useContext, useState } from "react";
+import { useSettings } from "../hooks/use-settings";
 
 export interface TimesTableContextValue {
   cells: CellValue[];
@@ -9,7 +10,7 @@ export interface TimesTableContextValue {
   idSeed: string;
   focusCell(index: number): void;
   setCellValue(index: number, value?: number): void;
-  reset(height: number, width: number): void;
+  reset(settings: { height: number; width: number }): void;
   validate(): void;
 }
 
@@ -84,18 +85,25 @@ function createValuesArray(rows: number[], cols: number[]): CellValue[] {
 }
 
 export const TimesTableProvider: FC = ({ children }) => {
-  const [rows, setRows] = useState<number[]>([]);
-  const [cols, setCols] = useState<number[]>([]);
+  const { settings, save } = useSettings();
+
+  const [rows, setRows] = useState<number[]>(() =>
+    createRange(settings.height)
+  );
+  const [cols, setCols] = useState<number[]>(() => createRange(settings.width));
   const [state, setState] = useState<TimesTableState>(
     TimesTableState.ANSWERING
   );
-  const [cells, setCells] = useState<CellValue[]>([]);
+  const [cells, setCells] = useState<CellValue[]>(() =>
+    createValuesArray(rows, cols)
+  );
   const [focusedCell, setFocusedCell] = useState<number>(-1);
-  const [idSeed, setIdSeed] = useState(idSeedGenerator());
+  const [idSeed, setIdSeed] = useState(idSeedGenerator);
 
-  const reset = useCallback((height: number, width: number) => {
-    const rows = createRange(height);
-    const cols = createRange(width);
+  const reset = useCallback((val: { height: number; width: number }) => {
+    save(val);
+    const rows = createRange(val.height);
+    const cols = createRange(val.width);
     setRows(rows);
     setCols(cols);
     setCells(createValuesArray(rows, cols));
