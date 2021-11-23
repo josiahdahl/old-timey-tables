@@ -9,7 +9,11 @@ import {
 } from "../contexts/times-table.context";
 import { getCompletedQuestionsCount } from "../util";
 
-export function TimesTable() {
+export interface TimesTableProps {
+  showResults: () => void;
+}
+
+export function TimesTable({ showResults }: TimesTableProps) {
   const { rows, cols, cells, reset, validate, state, focusCell, focusedCell } =
     useTimesTable();
   const width = cols.length || 12;
@@ -59,6 +63,7 @@ export function TimesTable() {
       }
     }
     validate();
+    showResults();
   }
 
   function handleReset() {
@@ -112,12 +117,22 @@ export function TimesTable() {
         </tbody>
       </table>
       <div className="flex justify-center py-4">
-        <button
-          className="rounded border-2 border-blue-900 bg-blue-900 text-white font-bold px-2 py-1 mr-4"
-          type="submit"
-        >
-          Check Answers
-        </button>
+        {state === TimesTableState.ANSWERING ? (
+          <button
+            className="rounded border-2 border-blue-900 bg-blue-900 text-white font-bold px-2 py-1 mr-4"
+            type="submit"
+          >
+            Check Answers
+          </button>
+        ) : (
+          <button
+            className="rounded border-2 border-blue-900 bg-blue-900 text-white font-bold px-2 py-1 mr-4"
+            type="button"
+            onClick={showResults}
+          >
+            View Results
+          </button>
+        )}
         <button
           className="border-2 border-transparent bg-transparent text-blue-900 font-bold px-2 py-1"
           type="reset"
