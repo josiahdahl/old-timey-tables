@@ -4,16 +4,23 @@ import { KeyboardControls } from "./components/KeyboardControls";
 import { Results } from "./components/Results";
 import { Header } from "./components/Header";
 import { TableSettings } from "./components/TableSettings";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 export function App() {
   const [showSettings, setShowSettings] = useState(false);
+  const [resultsShown, setResultsShown] = useState(false);
+  const showResults = useCallback(() => {
+    setResultsShown(state => true);
+  }, []);
+  const hideResults = useCallback(() => {
+    setResultsShown(false);
+  }, []);
 
   return (
     <TimesTableProvider>
       <main className="flex flex-col items-center justify-center min-h-screen">
         <Header />
-        <TimesTable />
+        <TimesTable showResults={showResults}/>
         <button
           aria-label="Open settings dialog"
           className="mb-2"
@@ -26,7 +33,7 @@ export function App() {
           onDismiss={() => setShowSettings(false)}
         />
         <KeyboardControls />
-        <Results />
+        <Results modalOpen={resultsShown} hideResults={hideResults}/>
       </main>
     </TimesTableProvider>
   );

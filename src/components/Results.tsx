@@ -1,25 +1,22 @@
 import { Dialog } from "@reach/dialog";
-import { TimesTableState, useTimesTable } from "../contexts/times-table.context";
-import { useLayoutEffect, useState } from "react";
+import { useTimesTable } from "../contexts/times-table.context";
 
-export function Results() {
+export interface ResultsProps {
+  modalOpen: boolean;
+  hideResults: () => void;
+}
+
+export function Results({modalOpen, hideResults}: ResultsProps) {
   const { cells, rows, cols, state } = useTimesTable();
-  const [modalOpen, setModalOpen] = useState(false);
   const completedQuestions = cells.filter(
     (v) => typeof v.answer !== "undefined"
   );
   const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
-  const hideModal = () => setModalOpen(false);
 
-  useLayoutEffect( () => {
-    if (state === TimesTableState.VALIDATED) {
-      setModalOpen(true);
-    }
-  }, [state])
   return (
     <Dialog
       isOpen={modalOpen}
-      onDismiss={hideModal}
+      onDismiss={hideResults}
       aria-label="Times Table Results"
     >
       <div className="text-xl text-center">
@@ -37,7 +34,7 @@ export function Results() {
         </p>
         <button
           className="bg-blue-900 text-white rounded border-blue-900 border-2 px-2 py-1 mt-4"
-          onClick={hideModal}
+          onClick={hideResults}
         >
           Close
         </button>
