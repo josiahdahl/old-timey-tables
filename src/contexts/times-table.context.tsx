@@ -8,6 +8,8 @@ export interface TimesTableContextValue {
   focusedCell: number;
   state: TimesTableState;
   idSeed: string;
+  totalTimeMs: number;
+  start(): void;
   focusCell(index: number): void;
   setCellValue(index: number, value?: number): void;
   reset(settings: { height: number; width: number }): void;
@@ -35,6 +37,7 @@ export interface CellValue {
 }
 
 export enum TimesTableState {
+  IDLE,
   ANSWERING,
   VALIDATED,
 }
@@ -86,14 +89,14 @@ function createValuesArray(rows: number[], cols: number[]): CellValue[] {
 
 export const TimesTableProvider: FC = ({ children }) => {
   const { settings, save } = useSettings();
+  const [startTime, setStartTime] = useState(0);
+  const [endTime, setEndTime] = useState(0);
 
   const [rows, setRows] = useState<number[]>(() =>
     createRange(settings.height)
   );
   const [cols, setCols] = useState<number[]>(() => createRange(settings.width));
-  const [state, setState] = useState<TimesTableState>(
-    TimesTableState.ANSWERING
-  );
+  const [state, setState] = useState<TimesTableState>(TimesTableState.IDLE);
   const [cells, setCells] = useState<CellValue[]>(() =>
     createValuesArray(rows, cols)
   );
@@ -108,7 +111,7 @@ export const TimesTableProvider: FC = ({ children }) => {
     setCols(cols);
     setCells(createValuesArray(rows, cols));
     setIdSeed(idSeedGenerator());
-    setState(TimesTableState.ANSWERING);
+    setState(TimesTableState.IDLE);
   }, []);
 
   const focusCell = useCallback((index: number) => {
@@ -136,7 +139,13 @@ export const TimesTableProvider: FC = ({ children }) => {
     }));
     setCells(validatedCells);
     setState(TimesTableState.VALIDATED);
+    setEndTime(Date.now());
   }, [cells]);
+
+  const start = useCallback(() => {
+    setStartTime(Date.now());
+    setState(TimesTableState.ANSWERING);
+  }, []);
 
   const value: TimesTableContextValue = {
     cells,
@@ -145,10 +154,12 @@ export const TimesTableProvider: FC = ({ children }) => {
     focusedCell,
     state,
     idSeed,
+    start,
     reset,
     focusCell,
     setCellValue,
     validate,
+    totalTimeMs: endTime - startTime,
   };
 
   return (

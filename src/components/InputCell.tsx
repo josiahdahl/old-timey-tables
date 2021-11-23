@@ -1,10 +1,6 @@
 import { CellContent } from "./CellContent";
 import { ChangeEvent, useEffect, useRef } from "react";
-import {
-  useCell,
-  CellValue,
-  TimesTableState,
-} from "../contexts/times-table.context";
+import { TimesTableState, useCell } from "../contexts/times-table.context";
 
 export interface InputCellProps {
   xIdx: number;
