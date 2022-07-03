@@ -6,12 +6,13 @@ export interface ResultsProps {
   hideResults: () => void;
 }
 
-export function Results({modalOpen, hideResults}: ResultsProps) {
-  const { cells, rows, cols, state } = useTimesTable();
+export function Results({ modalOpen, hideResults }: ResultsProps) {
+  const { cells, rows, cols, totalTimeMs } = useTimesTable();
   const completedQuestions = cells.filter(
     (v) => typeof v.answer !== "undefined"
   );
   const correctQuestions = completedQuestions.filter((v) => v.isCorrect);
+  const displayTime = (totalTimeMs / 1000).toFixed(3).replace(/0+$/, "");
 
   return (
     <Dialog
@@ -31,6 +32,9 @@ export function Results({modalOpen, hideResults}: ResultsProps) {
           <strong>
             {correctQuestions.length} / {rows.length * cols.length}
           </strong>
+        </p>
+        <p>
+          Total Time <strong>{displayTime} seconds</strong>
         </p>
         <button
           className="bg-blue-900 text-white rounded border-blue-900 border-2 px-2 py-1 mt-4"

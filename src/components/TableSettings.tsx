@@ -1,8 +1,7 @@
 import { DialogContent, DialogOverlay } from "@reach/dialog";
-import React, { FormEvent, useCallback, useRef } from "react";
+import React, { useRef } from "react";
 import { useTimesTable } from "../contexts/times-table.context";
 import { clamp, getCompletedQuestionsCount } from "../util";
-import { useSettings } from "../hooks/use-settings";
 
 export interface TableSettingsProps {
   isOpen: boolean;

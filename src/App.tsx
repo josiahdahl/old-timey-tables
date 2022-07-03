@@ -20,14 +20,7 @@ export function App() {
     <TimesTableProvider>
       <main className="flex flex-col items-center justify-center min-h-screen">
         <Header />
-        <TimesTable showResults={showResults}/>
-        <button
-          aria-label="Open settings dialog"
-          className="mb-2"
-          onClick={() => setShowSettings(true)}
-        >
-          Settings
-        </button>
+        <TimesTable showResults={showResults} showSettings={() => setShowSettings(true)}/>
         <TableSettings
           isOpen={showSettings}
           onDismiss={() => setShowSettings(false)}
